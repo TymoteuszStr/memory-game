@@ -37,10 +37,8 @@ function destroyGame() {
   gameManager.value = null
 }
 
-
-
 onMounted(async () => {
-  await app.init({ background: 'darkblue', resizeTo: window })
+  await app.init({ background: 0xf3f3f3, resizeTo: window })
   host.value?.appendChild(app.canvas)
   startGame()
 })

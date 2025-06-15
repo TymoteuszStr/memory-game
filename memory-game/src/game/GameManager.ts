@@ -1,4 +1,4 @@
-import { EventEmitter, Application, Graphics } from 'pixi.js'
+import { EventEmitter, Application, Graphics, Texture, Assets } from 'pixi.js'
 import { Board } from '@/game/Board'
 import type { CardInit, Weapon } from '@/game/types'
 import { createRng } from '@/game/rng'
@@ -32,7 +32,7 @@ export class GameManager extends EventEmitter {
     this.generateBoard(config.weapons, config.seed)
   }
 
-  private generateBoard(weapons: Weapon[], seed: string) {
+  private async generateBoard(weapons: Weapon[], seed: string) {
     const { cols, rows, cardWidth, cardHeight } = this.board.opts
     const total = cols * rows
     const pairsNeeded = total / 2
@@ -52,8 +52,17 @@ export class GameManager extends EventEmitter {
       id: `${weapon.id}-${idx}`,
       weapon,
     }))
+    const promises: Promise<unknown>[] = []
+    weapons.forEach((weapon) => {
+      promises.push(Assets.load(weapon.texturePath))
+    })
+    await Promise.all(promises)
 
-    const backTex = this.makeRectTexture(cardWidth, cardHeight, 0x000000)
+    const backTexture = Texture.from('/assets/backImage.png')
+
+    await Assets.load('/assets/backImage.png')
+    const backTex = Texture.from('/assets/backImage.png')
+
     const frontTex = this.makeRectTexture(cardWidth, cardHeight, 0xffffff)
 
     this.board.build(inits, backTex, frontTex)

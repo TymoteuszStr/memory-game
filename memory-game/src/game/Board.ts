@@ -21,8 +21,9 @@ export class Board {
   build(cardData: CardInit[], backTex: Texture, frontTex: Texture) {
     this.cards.length = 0
     const { cols, gap, cardWidth, cardHeight } = this.opts
+    const cardSize = { w: cardWidth, h: cardHeight }
     cardData.forEach((data, index) => {
-      const card = new Card(data.weapon, backTex, frontTex)
+      const card = new Card(data.weapon, backTex, frontTex, cardSize)
 
       const col = index % cols
       const row = Math.floor(index / cols)

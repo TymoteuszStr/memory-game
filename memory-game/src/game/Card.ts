@@ -1,18 +1,23 @@
-import { Sprite, Texture, Container } from 'pixi.js'
+import { Sprite, Texture, Container, Assets } from 'pixi.js'
 import type { Weapon } from '@/game/types'
+import { createCardSprite } from './creatCardSprite'
 
 export class Card extends Container {
-  private front: Sprite
-  private back: Sprite
+  private front: Container
+  private back: Container
   isFlipped = false
   isMatched = false
   readonly weapon: Weapon
-
-  constructor(weapon: Weapon, backTexture: Texture, frontTexture: Texture) {
+  constructor(
+    weapon: Weapon,
+    backTexture: Texture,
+    frontTexture: Texture,
+    size: { w: number; h: number },
+  ) {
     super()
     this.weapon = weapon
-    this.front = new Sprite(Texture.from(weapon.texturePath) || frontTexture)
-    this.back = new Sprite(backTexture)
+    this.front = createCardSprite(Texture.from(weapon.texturePath) || frontTexture, size.w, size.h)
+    this.back = createCardSprite(backTexture, size.w, size.h)
 
     this.addChild(this.back)
     this.eventMode = 'static'

@@ -1,6 +1,6 @@
 import { Texture, Container, Ticker } from 'pixi.js'
-import type { Weapon } from '@/game/types'
-import { createCardContainer } from '@/game/createCardContainer'
+import { type Weapon } from '@/game/types'
+import { createCardContainer, createCardContainerWithGradient } from '@/game/createCardContainer'
 const MAX_PROGRESS = 1
 const HALF_PROGRESS = 0.5
 
@@ -25,8 +25,9 @@ export class Card extends Container {
     super()
     this.weapon = weapon
 
-    this.front = createCardContainer(
+    this.front = createCardContainerWithGradient(
       Texture.from(weapon.texturePath) || frontTexture,
+      weapon.rarity,
       size.w,
       size.h,
     )

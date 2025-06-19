@@ -37,7 +37,9 @@ export class Card extends Container {
     this.eventMode = 'static'
     this.cursor = 'pointer'
 
-    this.on('pointerdown', this.onCardClick)
+    this.on('pointerdown', () => {
+      this.emit('card:click', this)
+    })
   }
 
   flip(): Promise<void> {
@@ -80,10 +82,6 @@ export class Card extends Container {
     this.ticker.remove(animationFunction)
   }
 
-  onCardClick = () => {
-    this.emit('card:click', this)
-    this.flip()
-  }
   setNewContainer(container: Container) {
     this.removeChildren()
     this.addChild(container)

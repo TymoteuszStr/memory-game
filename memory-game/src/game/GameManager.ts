@@ -26,8 +26,8 @@ export class GameManager extends EventEmitter {
       cols: config.cols,
       rows: config.rows,
       gap: 16,
-      cardWidth: 96,
-      cardHeight: 96,
+      cardWidth: 100,
+      cardHeight: 100,
     })
     this.generateBoard(config.weapons, config.seed)
   }
@@ -56,16 +56,14 @@ export class GameManager extends EventEmitter {
     weapons.forEach((weapon) => {
       promises.push(Assets.load(weapon.texturePath))
     })
+    promises.push(Assets.load('/assets/backImage.png'))
+
     await Promise.all(promises)
 
     const backTexture = Texture.from('/assets/backImage.png')
+    const frontTexture = this.makeRectTexture(cardWidth, cardHeight, 0xffffff)
 
-    await Assets.load('/assets/backImage.png')
-    const backTex = Texture.from('/assets/backImage.png')
-
-    const frontTex = this.makeRectTexture(cardWidth, cardHeight, 0xffffff)
-
-    this.board.build(inits, backTex, frontTex)
+    this.board.build(inits, backTexture, frontTexture)
 
     this.app.stage.removeChildren()
     this.app.stage.addChild(...this.board.cards)
@@ -80,13 +78,14 @@ export class GameManager extends EventEmitter {
   }
 
   public onCardClick(card: Card) {
-    if (this.flippedCard.length === 2) return
-
-    if (card.isMatched || card.isFlipped) return
+    if (!this.canCardBeFlipped(card)) return
     card.flip()
     this.flippedCard.push(card)
+
     if (this.flippedCard.length === 2) {
       this.moves++
+      this.emit('pair:matched', { moves: this.moves })
+
       this.checkPair()
     }
   }
@@ -94,8 +93,8 @@ export class GameManager extends EventEmitter {
   private checkPair() {
     const [c1, c2] = this.flippedCard
     if (c1.weapon.id === c2.weapon.id) {
-      c1.setMatched()
-      c2.setMatched()
+      c1.setMatched(true)
+      c2.setMatched(true)
       this.emit('pair:matched', { moves: this.moves })
       this.checkVictory()
       this.flippedCard = []
@@ -110,5 +109,14 @@ export class GameManager extends EventEmitter {
 
   private checkVictory() {
     //ADD VICORY CHECK
+  }
+
+  canCardBeFlipped(card: Card): boolean {
+    return (
+      !this.flippedCard.includes(card) &&
+      this.flippedCard.length < 2 &&
+      !card.isMatched &&
+      !card.isFlipped
+    )
   }
 }

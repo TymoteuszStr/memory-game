@@ -20,18 +20,19 @@ export class Board {
 
   build(cardData: CardInit[], backTex: Texture, frontTex: Texture) {
     this.cards.length = 0
-    const { cols, gap, cardWidth, cardHeight } = this.opts
-    const cardSize = { w: cardWidth, h: cardHeight }
+    const { cardWidth, cardHeight } = this.opts
     cardData.forEach((data, index) => {
-      const card = new Card(data.weapon, backTex, frontTex, cardSize)
-
-      const col = index % cols
-      const row = Math.floor(index / cols)
-
-      card.x = col * (cardWidth + gap)
-      card.y = row * (cardHeight + gap)
-
+      const card = new Card(data.weapon, backTex, frontTex, { w: cardWidth, h: cardHeight })
+      this.setCardPosition(card, index)
       this.cards.push(card)
     })
+  }
+
+  setCardPosition(card: Card, index: number) {
+    const { gap, cols } = this.opts
+    const col = index % cols
+    const row = Math.floor(index / cols)
+    card.x = col * (card.width + gap) + card.width / 2
+    card.y = row * (card.height + gap) + card.height / 2
   }
 }

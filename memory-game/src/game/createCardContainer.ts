@@ -1,6 +1,6 @@
 import { Graphics, Sprite, Texture, Container } from 'pixi.js'
 
-export function createCardSprite(tex: Texture, w: number, h: number, radius = 8): Container {
+export function createCardContainer(tex: Texture, w: number, h: number, radius = 8): Container {
   const container = new Container()
 
   const border = new Graphics()

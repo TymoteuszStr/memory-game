@@ -32,7 +32,7 @@ export class Board {
     const { gap, cols } = this.opts
     const col = index % cols
     const row = Math.floor(index / cols)
-    card.x = col * (card.width + gap) + card.width / 2
-    card.y = row * (card.height + gap) + card.height / 2
+    card.x = gap + col * (card.width + gap) + card.width / 2
+    card.y = gap + row * (card.height + gap) + card.height / 2
   }
 }

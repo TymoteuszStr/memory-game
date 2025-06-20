@@ -1,8 +1,8 @@
 import { EventEmitter, Application, Graphics, Texture, Assets } from 'pixi.js'
 import { Board } from '@/game/Board'
 import type { CardInit, Weapon } from '@/game/types'
-import { createRng } from '@/game/rng'
 import type { Card } from '@/game/Card'
+import { shuffleArray } from './shuffleArray'
 
 export interface GameConfig {
   cols: number
@@ -29,40 +29,37 @@ export class GameManager extends EventEmitter {
       cardWidth: 100,
       cardHeight: 100,
     })
-    this.generateBoard(config.weapons, config.seed)
+    this.generateBoard(config.weapons)
   }
 
-  private async generateBoard(weapons: Weapon[], seed: string) {
+  private async generateBoard(weapons: Weapon[]) {
     const { cols, rows, cardWidth, cardHeight } = this.board.opts
     const total = cols * rows
     const pairsNeeded = total / 2
-    const rng = createRng(seed)
-
     const pool: Weapon[] = []
     while (pool.length < pairsNeeded) {
       pool.push(...weapons)
     }
 
-    const shuffled = pool.sort(() => rng() - 0.5).slice(0, pairsNeeded)
+    const selected = shuffleArray(pool, this.seed).slice(0, pairsNeeded)
 
-    const duplicated = [...shuffled, ...shuffled]
-    const finalOrder = duplicated.sort(() => rng() - 0.5)
+    const duplicated = [...selected, ...selected]
+    const finalOrder = shuffleArray(duplicated, this.seed)
 
-    const inits: CardInit[] = finalOrder.map((weapon, idx) => ({
-      id: `${weapon.id}-${idx}`,
+    const inits: CardInit[] = finalOrder.map((weapon, index) => ({
+      id: `${weapon.id}-${index}`,
       weapon,
     }))
     const promises: Promise<unknown>[] = []
+
     weapons.forEach((weapon) => {
       promises.push(Assets.load(weapon.texturePath))
     })
     promises.push(Assets.load('/assets/backImage.png'))
-
     await Promise.all(promises)
 
     const backTexture = Texture.from('/assets/backImage.png')
     const frontTexture = this.makeRectTexture(cardWidth, cardHeight, 0xffffff)
-
     this.board.build(inits, backTexture, frontTexture)
 
     this.app.stage.removeChildren()

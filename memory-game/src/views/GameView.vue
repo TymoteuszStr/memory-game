@@ -7,6 +7,7 @@ import { storeToRefs } from 'pinia'
 const game = useGameStore()
 
 function onStart(payload: { seed: string; difficulty: 'easy' | 'medium' | 'hard' }) {
+  console.log(payload.seed)
   game.startGame(payload)
 }
 

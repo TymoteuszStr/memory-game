@@ -11,7 +11,7 @@ const emit = defineEmits<{
 const game = useGameStore()
 const { moves, elapsed, gameActive } = storeToRefs(game)
 
-const seed = ref('')
+const seed = ref(Date.now().toString(36))
 const difficulty = ref<'easy' | 'medium' | 'hard'>('medium')
 
 function emitStart() {

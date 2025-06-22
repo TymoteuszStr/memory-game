@@ -4,7 +4,7 @@ import { Application } from 'pixi.js'
 import { GameManager } from '@/game/GameManager'
 import { useGameStore } from '@/stores/gameStore'
 import { mockWeapons } from '@/game/mockWeapons'
-import type { Difficulty } from '@/game/types'
+import { Difficulty } from '@/game/types'
 
 const props = defineProps<{ difficulty: Difficulty; seed: string }>()
 
@@ -19,18 +19,28 @@ onBeforeUnmount(() => {
   app?.destroy(true, { children: true })
 })
 
+const gridSizeMap = {
+  [Difficulty.Easy]: 4,
+  [Difficulty.Medium]: 6,
+  [Difficulty.Hard]: 8,
+}
+
 function startGame() {
   if (!app) return
   loading.value = true
+
+  const gridSize = gridSizeMap[props.difficulty]
+
   gameManager.value = new GameManager(app, {
-    cols: props.difficulty === 'easy' ? 4 : props.difficulty === 'medium' ? 6 : 8,
-    rows: props.difficulty === 'easy' ? 4 : props.difficulty === 'medium' ? 6 : 8,
+    cols: gridSize,
+    rows: gridSize,
     seed: props.seed,
     weapons: mockWeapons,
   })
 
   gameManager.value.on('pair:matched', (payload) => (game.moves = payload.moves))
   gameManager.value.on('game:finished', (payload) => game.finishGame(payload))
+
   loading.value = false
 }
 
@@ -38,10 +48,24 @@ function destroyGame() {
   gameManager.value = null
 }
 
+function resizeRenderer() {
+  gameManager.value?.resizeRenderer(window.innerWidth, window.innerHeight)
+}
+
 onMounted(async () => {
-  await app.init({ background: 0xf3f3f3, resizeTo: window })
+  await app.init({
+    background: 0x253650,
+  })
+  window.addEventListener('resize', resizeRenderer)
   host.value?.appendChild(app.canvas)
   startGame()
+  resizeRenderer()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', resizeRenderer)
+  destroyGame()
+  app?.destroy(true, { children: true })
 })
 </script>
 
@@ -58,8 +82,14 @@ onMounted(async () => {
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
 }
+
 canvas {
+  max-width: 100%;
+  max-height: 100%;
   touch-action: none;
 }
 </style>

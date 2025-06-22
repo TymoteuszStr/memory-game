@@ -1,18 +1,20 @@
 import { Texture, Container, Ticker } from 'pixi.js'
 import { type Weapon } from '@/game/types'
 import { createCardContainer, createCardContainerWithGradient } from '@/game/createCardContainer'
-const MAX_PROGRESS = 1
-const HALF_PROGRESS = 0.5
+
+const HALF = 0.5
 
 export class Card extends Container {
   readonly weapon: Weapon
   private front: Container
   private back: Container
+  private targetSide = 0
   private flipping = false
   private swapDone = false
   private startTime = 0
-  private duration = 200
-  private ticker = Ticker.shared
+  private readonly duration = 200
+  private readonly ticker = Ticker.shared
+
   isFlipped = false
   isMatched = false
 
@@ -23,6 +25,7 @@ export class Card extends Container {
     size: { w: number; h: number },
   ) {
     super()
+
     this.weapon = weapon
 
     this.front = createCardContainerWithGradient(
@@ -32,76 +35,70 @@ export class Card extends Container {
       size.h,
     )
     this.back = createCardContainer(backTexture, size.w, size.h)
-    this.setNewContainer(this.back)
 
     this.pivot.set(size.w / 2, size.h / 2)
     this.eventMode = 'static'
     this.cursor = 'pointer'
 
-    this.on('pointerdown', () => {
-      this.emit('card:click', this)
-    })
+    this.setNewContainer(this.back)
+
+    this.on('pointerdown', () => this.emit('card:click', this))
   }
+
+  /* ---------- public ---------- */
 
   flip(): Promise<void> {
     if (this.flipping || this.isMatched) return Promise.resolve()
 
-    this.setFlipping(true)
-    this.setSwapDone(false)
+    this.flipping = true
+    this.swapDone = false
     this.startTime = performance.now()
 
     return new Promise((resolve) => {
       const tick = () => {
-        const flipProgress = (performance.now() - this.startTime) / this.duration
+        const progress = (performance.now() - this.startTime) / this.duration
 
-        if (!this.swapDone && flipProgress >= HALF_PROGRESS) {
+        if (!this.swapDone && progress >= HALF) {
           this.setNewContainer(this.isFlipped ? this.back : this.front)
-          this.setSwapDone(true)
+          this.swapDone = true
         }
 
-        if (flipProgress >= MAX_PROGRESS) {
-          this.finishFilpAnimation(tick)
+        this.scale.x = progress < HALF ? 1 - progress * 2 : (progress - HALF) * 2
+
+        if (progress >= 1) {
+          this.scale.x = 1
+          this.isFlipped = !this.isFlipped
+          this.flipping = false
+          this.ticker.remove(tick)
           resolve()
         }
-
-        this.setXScale(this.calculateXScale(flipProgress))
       }
       this.ticker.add(tick)
     })
   }
 
-  calculateXScale = (currentProfress: number) => {
-    return currentProfress < HALF_PROGRESS
-      ? MAX_PROGRESS - currentProfress * 2
-      : (currentProfress - HALF_PROGRESS) * 2
+  resize(side: number) {
+    this.targetSide = side
+    this.applyTargetSize(this.front)
+    this.applyTargetSize(this.back)
+    this.pivot.set(side / 2, side / 2)
   }
 
-  finishFilpAnimation(animationFunction: () => void) {
-    this.setXScale(MAX_PROGRESS)
-    this.setIsFlipped(!this.isFlipped)
-    this.setFlipping(false)
-    this.ticker.remove(animationFunction)
-  }
+  /* ---------- private ---------- */
 
-  setNewContainer(container: Container) {
+  private setNewContainer(container: Container) {
     this.removeChildren()
     this.addChild(container)
+    this.applyTargetSize(container)
+  }
+
+  private applyTargetSize(c: Container) {
+    if (this.targetSide) {
+      c.width = this.targetSide
+      c.height = this.targetSide
+    }
   }
   setMatched(arg: boolean) {
     this.isMatched = arg
-  }
-
-  setSwapDone(arg: boolean) {
-    this.swapDone = arg
-  }
-  setIsFlipped(arg: boolean) {
-    this.isFlipped = arg
-  }
-
-  setFlipping(arg: boolean) {
-    this.flipping = arg
-  }
-  setXScale(arg: number) {
-    this.scale.x = arg
   }
 }

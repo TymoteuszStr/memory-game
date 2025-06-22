@@ -26,14 +26,14 @@ export class GameManager extends EventEmitter {
       cols: config.cols,
       rows: config.rows,
       gap: 16,
-      cardWidth: 100,
-      cardHeight: 100,
+      margin: 16,
     })
     this.generateBoard(config.weapons)
   }
 
   private async generateBoard(weapons: Weapon[]) {
-    const { cols, rows, cardWidth, cardHeight } = this.board.opts
+    const { cols, rows } = this.board.opts
+    const { cardSide } = this.board
     const total = cols * rows
     const pairsNeeded = total / 2
     const pool: Weapon[] = []
@@ -59,7 +59,8 @@ export class GameManager extends EventEmitter {
     await Promise.all(promises)
 
     const backTexture = Texture.from('/assets/backImage.png')
-    const frontTexture = this.makeRectTexture(cardWidth, cardHeight, 0xffffff)
+    const frontTexture = this.makeRectTexture(cardSide, cardSide, 0xffffff)
+    this.board.resize(window.innerWidth, window.innerHeight)
     this.board.build(inits, backTexture, frontTexture)
 
     this.app.stage.removeChildren()
@@ -115,5 +116,10 @@ export class GameManager extends EventEmitter {
       !card.isMatched &&
       !card.isFlipped
     )
+  }
+
+  resizeRenderer(w: number, h: number) {
+    this.app.renderer.resize(w, h)
+    this.board.resize(w, h)
   }
 }

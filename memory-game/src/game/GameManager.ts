@@ -12,6 +12,7 @@ import {
 } from '@/game/types'
 import type { Card } from '@/game/Card'
 import { shuffleArray } from './shuffleArray'
+import { sound } from '@pixi/sound'
 
 export interface GameConfig {
   cols: number
@@ -64,6 +65,22 @@ export class GameManager extends EventEmitter {
     }))
     const promises: Promise<unknown>[] = []
 
+    promises.push(Assets.load('/assets/backImage.png'))
+    promises.push(
+      new Promise<void>((resolve) => {
+        sound.add('flip', {
+          url: '/assets/cardFlip.wav',
+          preload: true,
+          loaded: () => resolve(),
+        })
+        sound.add('success', {
+          url: '/assets/success.wav',
+          preload: true,
+          loaded: () => resolve(),
+        })
+      }),
+    )
+    await Promise.all(promises)
     weapons.forEach((weapon) => {
       promises.push(Assets.load(weapon.texturePath))
     })
@@ -93,6 +110,8 @@ export class GameManager extends EventEmitter {
 
   public async onCardClick(card: Card) {
     if (!this.canCardBeFlipped(card)) return
+    sound.play('flip')
+
     this.flippedCard.push(card)
     await card.flip()
 
@@ -106,6 +125,7 @@ export class GameManager extends EventEmitter {
   private checkPair() {
     const [c1, c2] = this.flippedCard
     if (c1.weapon.id === c2.weapon.id) {
+      sound.play('success')
       c1.setMatched(true)
       c2.setMatched(true)
       this.emit(PAIR_MATCHED)

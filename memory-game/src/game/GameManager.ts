@@ -5,6 +5,7 @@ import {
   CARD_CLICK,
   GAME_MOVES,
   GAME_SAVE,
+  HEADER_HEIGHT,
   PAIR_MATCHED,
   type CardInit,
   type GameSaveData,
@@ -100,7 +101,7 @@ export class GameManager extends EventEmitter {
 
     this.startTs = Date.now()
 
-    this.resizeRenderer(window.innerWidth, window.innerHeight)
+    this.resizeRenderer(window.innerWidth, window.innerHeight - HEADER_HEIGHT)
   }
 
   private makeRectTexture(w: number, h: number, color: number) {

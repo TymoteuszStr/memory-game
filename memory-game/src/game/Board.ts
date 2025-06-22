@@ -50,10 +50,9 @@ export class Board {
     this.cardSide = Math.floor(Math.min(freeW / cols, freeH / rows))
 
     const boardW = cols * this.cardSide + totalGapsX
-    const boardH = rows * this.cardSide + totalGapsY
 
     const offsetX = (w - boardW) / 2
-    const offsetY = (h - boardH) / 2
+    const offsetY = gap
 
     this.cards.forEach((card, index) => {
       const col = index % cols

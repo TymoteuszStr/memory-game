@@ -4,7 +4,14 @@ import { Application } from 'pixi.js'
 import { GameManager } from '@/game/GameManager'
 import { useGameStore } from '@/stores/gameStore'
 import { mockWeapons } from '@/game/mockWeapons'
-import { Difficulty, gridSizeMap, GAME_MOVES, GAME_SAVE, type GameSaveData } from '@/game/types'
+import {
+  Difficulty,
+  gridSizeMap,
+  GAME_MOVES,
+  GAME_SAVE,
+  HEADER_HEIGHT,
+  type GameSaveData,
+} from '@/game/types'
 
 const props = defineProps<{ difficulty: Difficulty; seed: string }>()
 const gameStore = useGameStore()
@@ -62,7 +69,9 @@ function addEvents(gm: GameManager | null) {
 
 function resizeRenderer() {
   if (!gameManager) return
-  gameManager.resizeRenderer(window.innerWidth, window.innerHeight)
+  const w = window.innerWidth
+  const h = window.innerHeight - HEADER_HEIGHT
+  gameManager.resizeRenderer(w, h)
 }
 
 function onSaveChanges() {
@@ -93,7 +102,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="host" class="canvas-wrapper flex-center">
+  <div ref="host" class="canvas-wrapper">
     <p v-if="loading" class="flex-center">Loading…</p>
   </div>
 </template>

@@ -12,11 +12,15 @@ function formatTime(ms: number) {
 </script>
 
 <template>
-  <div class="flex items-center gap-6">
-    <span>Ruchy: {{ moves }}</span>
-    <span>Czas: {{ formatTime(elapsed) }}</span>
-    <button class="btn" @click="$emit('restart')">Restart</button>
+  <div class="statistic-wrapper">
+    <div>Ruchy: {{ moves }}</div>
+    <div>Czas: {{ formatTime(elapsed) }}</div>
   </div>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.statistic-wrapper {
+  width: fit-content;
+  color: #11998e;
+}
+</style>

@@ -4,7 +4,7 @@ import { Application } from 'pixi.js'
 import { GameManager } from '@/game/GameManager'
 import { useGameStore } from '@/stores/gameStore'
 import { mockWeapons } from '@/game/mockWeapons'
-import { Difficulty, gridSizeMap, PAIR_MATCHED, GAME_SAVE, type GameSaveData } from '@/game/types'
+import { Difficulty, gridSizeMap, GAME_MOVES, GAME_SAVE, type GameSaveData } from '@/game/types'
 
 const props = defineProps<{ difficulty: Difficulty; seed: string }>()
 const gameStore = useGameStore()
@@ -32,6 +32,7 @@ async function loadGame(save: GameSaveData) {
     gameManager = await GameManager.createFromState(app, mockWeapons, save)
     addEvents(gameManager)
     loading.value = false
+    gameStore.resumeGame(save)
     return
   } catch (err) {
     console.warn('Nieprawidłowy save – startuję nową grę', err)
@@ -54,7 +55,7 @@ function destroyGame() {
 
 function addEvents(gm: GameManager | null) {
   if (!gm) return
-  gm.on(PAIR_MATCHED, (payload) => (gameStore.moves = payload.moves))
+  gm.on(GAME_MOVES, (payload) => (gameStore.moves = payload.moves))
   gm.on('game:finished', (payload) => gameStore.finishGame(payload))
   gm.on(GAME_SAVE, onSaveChanges)
 }
@@ -80,6 +81,7 @@ onMounted(async () => {
   host.value?.appendChild(app.canvas)
   await loadOrStartGame()
   resizeRenderer()
+
   loading.value = false
 })
 

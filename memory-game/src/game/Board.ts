@@ -39,16 +39,28 @@ export class Board {
   }
 
   resize(w: number, h: number) {
-    const { cols, rows, gap, margin } = this.opts
+    const { cols, rows, gap } = this.opts
 
-    const freeW = w - margin! * 2 - gap * (cols + 1)
-    const freeH = h - margin! * 2 - gap * (rows + 1)
+    const totalGapsX = gap * (cols + 1)
+    const totalGapsY = gap * (rows + 1)
+
+    const freeW = w - totalGapsX
+    const freeH = h - totalGapsY
 
     this.cardSide = Math.floor(Math.min(freeW / cols, freeH / rows))
 
+    const boardW = cols * this.cardSide + totalGapsX
+    const boardH = rows * this.cardSide + totalGapsY
+
+    const offsetX = (w - boardW) / 2
+    const offsetY = (h - boardH) / 2
+
     this.cards.forEach((card, index) => {
+      const col = index % cols
+      const row = Math.floor(index / cols)
+      card.x = offsetX + gap + col * (this.cardSide + gap) + this.cardSide / 2
+      card.y = offsetY + gap + row * (this.cardSide + gap) + this.cardSide / 2
       card.resize(this.cardSide)
-      this.setCardPosition(card, index)
     })
   }
 }

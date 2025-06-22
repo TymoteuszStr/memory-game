@@ -7,12 +7,6 @@ body {
     font-style: normal;
   }
 }
-html,
-body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
 
 $primary: #11998e;
 $secondary: #38ef7d;
@@ -98,4 +92,11 @@ body {
   min-height: 100vh;
   font-size: 1.5rem;
   background-color: #222222;
+}
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { type Ref } from 'vue'
+import { ref, type Ref } from 'vue'
 import type { CardInit, GameSaveData } from '@/game/types'
 import { useLocalStorage } from '@vueuse/core'
 
@@ -11,7 +11,7 @@ export const useGameStore = defineStore('game', () => {
   const gameActive = useLocalStorage('gameActive', false)
   const isFinished = useLocalStorage('isFinished', false)
 
-  const timer: Ref<number | null> = useLocalStorage('timer', null)
+  const timer: Ref<number | null> = ref(null)
 
   function startGame() {
     resetGame()
@@ -56,7 +56,13 @@ export const useGameStore = defineStore('game', () => {
       timer.value = null
     }
   }
+  function resumeGame(save: GameSaveData) {
+    moves.value = save.moves
+    console.log(save.moves)
+    elapsed.value = Date.now() - save.startTs
 
+    startTimer()
+  }
   function saveGameManagerData(data: GameSaveData) {
     gameSavedData.value = JSON.stringify(data)
   }
@@ -73,9 +79,11 @@ export const useGameStore = defineStore('game', () => {
     isFinished,
     gameSavedData,
     startGame,
+    startTimer,
     finishGame,
     resetGame,
     saveGameManagerData,
     getGameManagerData,
+    resumeGame,
   }
 })

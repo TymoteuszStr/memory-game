@@ -3,6 +3,7 @@ import { Board } from '@/game/Board'
 import {
   backCardTexturePath,
   CARD_CLICK,
+  GAME_MOVES,
   GAME_SAVE,
   PAIR_MATCHED,
   type CardInit,
@@ -81,6 +82,8 @@ export class GameManager extends EventEmitter {
     this.board.cards.forEach((card) => card.on(CARD_CLICK, () => this.onCardClick(card as Card)))
 
     this.startTs = Date.now()
+
+    this.resizeRenderer(window.innerWidth, window.innerHeight)
   }
 
   private makeRectTexture(w: number, h: number, color: number) {
@@ -90,14 +93,13 @@ export class GameManager extends EventEmitter {
 
   public async onCardClick(card: Card) {
     if (!this.canCardBeFlipped(card)) return
-    await card.flip()
     this.flippedCard.push(card)
+    await card.flip()
 
     if (this.flippedCard.length === 2) {
       this.moves++
-      this.emit(PAIR_MATCHED, { moves: this.moves })
-
       this.checkPair()
+      this.emit(GAME_MOVES, { moves: this.moves })
     }
   }
 
@@ -106,7 +108,7 @@ export class GameManager extends EventEmitter {
     if (c1.weapon.id === c2.weapon.id) {
       c1.setMatched(true)
       c2.setMatched(true)
-      this.emit(PAIR_MATCHED, { moves: this.moves })
+      this.emit(PAIR_MATCHED)
       this.checkVictory()
       this.flippedCard = []
       this.emit(GAME_SAVE)

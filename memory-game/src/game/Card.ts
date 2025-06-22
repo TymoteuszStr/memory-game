@@ -46,7 +46,7 @@ export class Card extends Container {
     this.on('pointerdown', () => this.emit(CARD_CLICK, this))
   }
 
-  private flip(): Promise<void> {
+  public flip(): Promise<void> {
     if (this.flipping || this.isMatched) return Promise.resolve()
 
     this.flipping = true

@@ -1,4 +1,4 @@
-import { Texture, Container, Ticker } from 'pixi.js'
+import { Texture, Container, Ticker, FederatedPointerEvent } from 'pixi.js'
 import { CARD_CLICK, type Weapon } from '@/game/types'
 import { createCardContainer, createCardContainerWithGradient } from '@/game/createCardContainer'
 
@@ -18,6 +18,14 @@ export class Card extends Container {
   private readonly ticker = Ticker.shared
   public isFlipped = false
   public isMatched = false
+
+  // Parallax properties
+  private targetRotation = 0
+  private currentRotation = 0
+  private maxRotation = 0.07 // ~4 degrees
+  private targetScale = 1
+  private currentScale = 1
+  private maxScale = 1.05
 
   constructor(
     id: string,
@@ -43,7 +51,22 @@ export class Card extends Container {
     this.eventMode = 'static'
     this.cursor = 'pointer'
     this.setNewContainer(this.back)
+
     this.on('pointerdown', () => this.emit(CARD_CLICK, this))
+    this.on('pointermove', this.handlePointerMove)
+    this.on('pointerout', this.handlePointerOut)
+    this.on('pointerleave', this.handlePointerOut)
+
+    this.ticker.add(this.updateParallax)
+  }
+
+  private updateParallax = () => {
+    if (!this.parent) return
+    this.currentRotation += (this.targetRotation - this.currentRotation) * 0.05
+    this.rotation = this.currentRotation
+
+    this.currentScale += (this.targetScale - this.currentScale) * 0.5
+    this.scale.set(this.currentScale)
   }
 
   public flip(): Promise<void> {
@@ -76,6 +99,7 @@ export class Card extends Container {
       this.ticker.add(tick)
     })
   }
+
   private applyTargetSize(c: Container) {
     if (this.targetSide) {
       c.width = this.targetSide
@@ -103,5 +127,18 @@ export class Card extends Container {
   public showFace(front: boolean) {
     this.setNewContainer(front ? this.front : this.back)
     this.isFlipped = front
+  }
+  private handlePointerMove = (event: FederatedPointerEvent) => {
+    const pos = event.data.getLocalPosition(this)
+    const centerX = this.width / 2
+
+    const dx = (pos.x - centerX) / centerX
+    this.targetRotation = dx * this.maxRotation
+    this.targetScale = this.maxScale
+  }
+
+  private handlePointerOut = () => {
+    this.targetRotation = 0
+    this.targetScale = 1
   }
 }

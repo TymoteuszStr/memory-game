@@ -46,8 +46,8 @@ export const useGameStore = defineStore('game', () => {
   function startTimer() {
     stopTimer()
     timer.value = window.setInterval(() => {
-      elapsed.value += 100
-    }, 100)
+      elapsed.value += 1000
+    }, 1000)
   }
 
   function stopTimer() {
@@ -58,7 +58,6 @@ export const useGameStore = defineStore('game', () => {
   }
   function resumeGame(save: GameSaveData) {
     moves.value = save.moves
-    console.log(save.moves)
     elapsed.value = Date.now() - save.startTs
 
     startTimer()

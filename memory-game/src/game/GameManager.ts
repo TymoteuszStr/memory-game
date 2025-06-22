@@ -1,6 +1,14 @@
 import { EventEmitter, Application, Graphics, Texture, Assets } from 'pixi.js'
 import { Board } from '@/game/Board'
-import type { CardInit, Weapon } from '@/game/types'
+import {
+  backCardTexturePath,
+  CARD_CLICK,
+  GAME_SAVE,
+  PAIR_MATCHED,
+  type CardInit,
+  type GameSaveData,
+  type Weapon,
+} from '@/game/types'
 import type { Card } from '@/game/Card'
 import { shuffleArray } from './shuffleArray'
 
@@ -18,17 +26,20 @@ export class GameManager extends EventEmitter {
   moves = 0
   startTs = 0
 
-  constructor(app: Application, config: GameConfig) {
+  constructor(app: Application, config: GameConfig, skipGenerate = false) {
     super()
     this.app = app
     this.seed = config.seed
+
     this.board = new Board({
       cols: config.cols,
       rows: config.rows,
       gap: 16,
       margin: 16,
     })
-    this.generateBoard(config.weapons)
+    if (!skipGenerate) {
+      this.generateBoard(config.weapons)
+    }
   }
 
   private async generateBoard(weapons: Weapon[]) {
@@ -55,17 +66,19 @@ export class GameManager extends EventEmitter {
     weapons.forEach((weapon) => {
       promises.push(Assets.load(weapon.texturePath))
     })
-    promises.push(Assets.load('/assets/backImage.png'))
+    promises.push(Assets.load(backCardTexturePath))
     await Promise.all(promises)
 
-    const backTexture = Texture.from('/assets/backImage.png')
+    const backTexture = Texture.from(backCardTexturePath)
     const frontTexture = this.makeRectTexture(cardSide, cardSide, 0xffffff)
     this.board.resize(window.innerWidth, window.innerHeight)
     this.board.build(inits, backTexture, frontTexture)
 
     this.app.stage.removeChildren()
-    this.app.stage.addChild(...this.board.cards)
-    this.board.cards.forEach((card) => card.on('card:click', () => this.onCardClick(card as Card)))
+    for (const card of this.board.cards) {
+      if (!card.parent) this.app.stage.addChild(card)
+    }
+    this.board.cards.forEach((card) => card.on(CARD_CLICK, () => this.onCardClick(card as Card)))
 
     this.startTs = Date.now()
   }
@@ -75,14 +88,14 @@ export class GameManager extends EventEmitter {
     return this.app.renderer.generateTexture(g)
   }
 
-  public onCardClick(card: Card) {
+  public async onCardClick(card: Card) {
     if (!this.canCardBeFlipped(card)) return
-    card.flip()
+    await card.flip()
     this.flippedCard.push(card)
 
     if (this.flippedCard.length === 2) {
       this.moves++
-      this.emit('pair:matched', { moves: this.moves })
+      this.emit(PAIR_MATCHED, { moves: this.moves })
 
       this.checkPair()
     }
@@ -93,9 +106,10 @@ export class GameManager extends EventEmitter {
     if (c1.weapon.id === c2.weapon.id) {
       c1.setMatched(true)
       c2.setMatched(true)
-      this.emit('pair:matched', { moves: this.moves })
+      this.emit(PAIR_MATCHED, { moves: this.moves })
       this.checkVictory()
       this.flippedCard = []
+      this.emit(GAME_SAVE)
     } else {
       setTimeout(() => {
         c1.flip()
@@ -121,5 +135,55 @@ export class GameManager extends EventEmitter {
   resizeRenderer(w: number, h: number) {
     this.app.renderer.resize(w, h)
     this.board.resize(w, h)
+  }
+
+  public getSerializableState(): GameSaveData {
+    return {
+      version: 1,
+      config: {
+        cols: this.board.opts.cols,
+        rows: this.board.opts.rows,
+        seed: this.seed,
+      },
+      moves: this.moves,
+      startTs: this.startTs,
+      cards: this.board.cards.map((c) => ({
+        id: c.id,
+        isFlipped: c.isFlipped,
+        isMatched: c.isMatched,
+      })),
+    }
+  }
+
+  public async restoreFromState(state: GameSaveData, weapons: Weapon[]) {
+    await this.generateBoard(weapons)
+
+    const map = new Map<string, Card>()
+    this.board.cards.forEach((c) => map.set(c.id, c))
+
+    state.cards.forEach((saved) => {
+      const card = map.get(saved.id)
+      if (!card) return
+
+      card.isMatched = saved.isMatched
+      card.isFlipped = saved.isFlipped
+
+      if (saved.isMatched) card.setMatched(true)
+      card.showFace(saved.isFlipped)
+    })
+
+    this.moves = state.moves
+    this.startTs = state.startTs
+
+    this.emit(PAIR_MATCHED, { moves: this.moves })
+  }
+  static async createFromState(
+    app: Application,
+    weapons: Weapon[],
+    state: GameSaveData,
+  ): Promise<GameManager> {
+    const gm = new GameManager(app, { ...state.config, weapons }, true)
+    await gm.restoreFromState(state, weapons)
+    return gm
   }
 }

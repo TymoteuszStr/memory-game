@@ -1,32 +1,25 @@
 import { defineStore } from 'pinia'
-import { ref, type Ref } from 'vue'
-import type { CardInit } from '@/game/types'
+import { type Ref } from 'vue'
+import type { CardInit, GameSaveData } from '@/game/types'
+import { useLocalStorage } from '@vueuse/core'
 
 export const useGameStore = defineStore('game', () => {
-  const seed = ref<string>('')
-  const difficulty = ref<'easy' | 'medium' | 'hard'>('medium')
+  const gameSavedData: Ref<string | null> = useLocalStorage('gameSavedData', null)
+  const board: Ref<CardInit[]> = useLocalStorage('board', [])
+  const moves = useLocalStorage('moves', 0)
+  const elapsed = useLocalStorage('elapsed', 0)
+  const gameActive = useLocalStorage('gameActive', false)
+  const isFinished = useLocalStorage('isFinished', false)
 
-  const board: Ref<CardInit[]> = ref([])
-  const moves = ref(0)
-  const elapsed = ref(0)
-  const gameActive = ref(false)
-  const isFinished = ref(false)
+  const timer: Ref<number | null> = useLocalStorage('timer', null)
 
-  let timer: number | null = null
-
-  function startGame(payload: {
-    seed: string
-    difficulty: 'easy' | 'medium' | 'hard'
-    cards?: CardInit[]
-  }) {
-    seed.value = payload.seed
-    difficulty.value = payload.difficulty
-    board.value = payload.cards ?? []
+  function startGame() {
+    resetGame()
+    board.value = []
     moves.value = 0
     elapsed.value = 0
     isFinished.value = false
     gameActive.value = true
-
     startTimer()
   }
 
@@ -41,41 +34,48 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function resetGame() {
-    seed.value = ''
-    difficulty.value = 'medium'
     board.value = []
     moves.value = 0
     elapsed.value = 0
     isFinished.value = false
     gameActive.value = false
-    stopTimer()
+    gameSavedData.value = null
+    timer.value = null
   }
 
   function startTimer() {
     stopTimer()
-    timer = window.setInterval(() => {
+    timer.value = window.setInterval(() => {
       elapsed.value += 100
     }, 100)
   }
 
   function stopTimer() {
-    if (timer !== null) {
-      clearInterval(timer)
-      timer = null
+    if (timer.value !== null) {
+      clearInterval(timer.value)
+      timer.value = null
     }
   }
 
+  function saveGameManagerData(data: GameSaveData) {
+    gameSavedData.value = JSON.stringify(data)
+  }
+
+  function getGameManagerData(): GameSaveData | null {
+    if (!gameSavedData.value) return null
+    return JSON.parse(gameSavedData.value) as GameSaveData
+  }
   return {
-    seed,
-    difficulty,
     board,
     moves,
     elapsed,
     gameActive,
     isFinished,
-
+    gameSavedData,
     startGame,
     finishGame,
     resetGame,
+    saveGameManagerData,
+    getGameManagerData,
   }
 })

@@ -21,7 +21,7 @@ export class Board {
   build(cardData: CardInit[], backTex: Texture, frontTex: Texture) {
     this.cards.length = 0
     cardData.forEach((data, index) => {
-      const card = new Card(data.weapon, backTex, frontTex, {
+      const card = new Card(data.id, data.weapon, backTex, frontTex, {
         w: this.cardSide,
         h: this.cardSide,
       })

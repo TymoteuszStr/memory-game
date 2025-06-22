@@ -4,11 +4,6 @@ import { RARITY_GRADIENTS, type Rarity } from '@/game/types'
 export function createCardContainer(tex: Texture, w: number, h: number, radius = 8): Container {
   const container = new Container()
 
-  const border = new Graphics()
-    .roundRect(0, 0, w, h, radius)
-    .stroke({ width: 8, color: 0xffffff, alignment: 1 })
-  container.addChild(border)
-
   const image = new Sprite(tex)
   const scale = Math.max(w / tex.width, h / tex.height)
   image.scale.set(scale)
@@ -55,7 +50,7 @@ export function createCardContainerWithGradient(
 
   const border = new Graphics()
     .roundRect(0, 0, w, h, radius)
-    .stroke({ width: 8, color: 0xffffff, alignment: 1 })
+    .stroke({ width: 8, color: 0xf3f3f3, alignment: 1 })
   outer.addChild(border)
 
   return outer

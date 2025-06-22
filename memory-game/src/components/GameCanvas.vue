@@ -4,62 +4,83 @@ import { Application } from 'pixi.js'
 import { GameManager } from '@/game/GameManager'
 import { useGameStore } from '@/stores/gameStore'
 import { mockWeapons } from '@/game/mockWeapons'
-import { Difficulty } from '@/game/types'
+import { Difficulty, gridSizeMap, PAIR_MATCHED, GAME_SAVE, type GameSaveData } from '@/game/types'
 
 const props = defineProps<{ difficulty: Difficulty; seed: string }>()
+const gameStore = useGameStore()
 
 const host = ref<HTMLDivElement | null>(null)
 const app = new Application()
-const gameManager = ref<GameManager | null>(null)
+let gameManager: GameManager | null = null
 const loading = ref(false)
-
-const game = useGameStore()
-onBeforeUnmount(() => {
-  destroyGame()
-  app?.destroy(true, { children: true })
-})
-
-const gridSizeMap = {
-  [Difficulty.Easy]: 4,
-  [Difficulty.Medium]: 6,
-  [Difficulty.Hard]: 8,
-}
 
 function startGame() {
   if (!app) return
-  loading.value = true
 
   const gridSize = gridSizeMap[props.difficulty]
 
-  gameManager.value = new GameManager(app, {
+  gameManager = new GameManager(app, {
     cols: gridSize,
     rows: gridSize,
     seed: props.seed,
     weapons: mockWeapons,
   })
+  addEvents(gameManager)
+}
+async function loadGame(save: GameSaveData) {
+  try {
+    gameManager = await GameManager.createFromState(app, mockWeapons, save)
+    addEvents(gameManager)
+    loading.value = false
+    return
+  } catch (err) {
+    console.warn('Nieprawidłowy save – startuję nową grę', err)
+    startGame()
+  }
+}
 
-  gameManager.value.on('pair:matched', (payload) => (game.moves = payload.moves))
-  gameManager.value.on('game:finished', (payload) => game.finishGame(payload))
-
-  loading.value = false
+async function loadOrStartGame() {
+  const save = gameStore.getGameManagerData()
+  if (save) {
+    await loadGame(save)
+  } else {
+    startGame()
+  }
 }
 
 function destroyGame() {
-  gameManager.value = null
+  gameManager = null
+}
+
+function addEvents(gm: GameManager | null) {
+  if (!gm) return
+  gm.on(PAIR_MATCHED, (payload) => (gameStore.moves = payload.moves))
+  gm.on('game:finished', (payload) => gameStore.finishGame(payload))
+  gm.on(GAME_SAVE, onSaveChanges)
 }
 
 function resizeRenderer() {
-  gameManager.value?.resizeRenderer(window.innerWidth, window.innerHeight)
+  if (!gameManager) return
+  gameManager.resizeRenderer(window.innerWidth, window.innerHeight)
+}
+
+function onSaveChanges() {
+  const data = gameManager?.getSerializableState()
+  if (!data) return
+  gameStore.saveGameManagerData(data)
 }
 
 onMounted(async () => {
+  loading.value = true
+
   await app.init({
     background: 0x253650,
   })
   window.addEventListener('resize', resizeRenderer)
   host.value?.appendChild(app.canvas)
-  startGame()
+  await loadOrStartGame()
   resizeRenderer()
+  loading.value = false
 })
 
 onBeforeUnmount(() => {
@@ -70,18 +91,13 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="host" class="canvas-wrapper relative">
-    <p v-if="loading" class="absolute inset-0 flex items-center justify-center text-white">
-      Loading…
-    </p>
+  <div ref="host" class="canvas-wrapper flex-center">
+    <p v-if="loading" class="flex-center">Loading…</p>
   </div>
 </template>
 
 <style scoped>
 .canvas-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
@@ -91,5 +107,10 @@ canvas {
   max-width: 100%;
   max-height: 100%;
   touch-action: none;
+}
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>

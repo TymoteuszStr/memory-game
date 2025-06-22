@@ -33,3 +33,28 @@ export enum Difficulty {
   Medium = 'medium',
   Hard = 'hard',
 }
+
+export interface SavedCardState {
+  id: string
+  isFlipped: boolean
+  isMatched: boolean
+}
+
+export interface GameSaveData {
+  version: 1
+  config: { cols: number; rows: number; seed: string }
+  moves: number
+  startTs: number
+  cards: SavedCardState[]
+}
+
+export const gridSizeMap = {
+  [Difficulty.Easy]: 4,
+  [Difficulty.Medium]: 6,
+  [Difficulty.Hard]: 8,
+}
+
+export const PAIR_MATCHED = 'pair:matched'
+export const GAME_SAVE = 'game:save'
+export const CARD_CLICK = 'card:click'
+export const backCardTexturePath = '/assets/backImage.png'

@@ -3,13 +3,15 @@ import { ref } from 'vue'
 
 import { useRouter } from 'vue-router'
 import { Difficulty } from '@/game/types'
+import { useGameStore } from '@/stores/gameStore'
 
 const router = useRouter()
-
+const gameStore = useGameStore()
 const seed = ref(Date.now().toString(36))
 const difficulty = ref<Difficulty>(Difficulty.Medium)
 
 function onStart() {
+  gameStore.resetGame()
   if (!seed.value) seed.value = Date.now().toString(36)
   const seedWithourSpaces = seed.value.replace(/\s+/g, '')
   router.push({ name: 'game', query: { seed: seedWithourSpaces, difficulty: difficulty.value } })

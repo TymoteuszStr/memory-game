@@ -4,8 +4,9 @@ import { Application } from 'pixi.js'
 import { GameManager } from '@/game/GameManager'
 import { useGameStore } from '@/stores/gameStore'
 import { mockWeapons } from '@/game/mockWeapons'
+import type { Difficulty } from '@/game/types'
 
-const props = defineProps<{ difficulty: 'easy' | 'medium' | 'hard'; seed: string }>()
+const props = defineProps<{ difficulty: Difficulty; seed: string }>()
 
 const host = ref<HTMLDivElement | null>(null)
 const app = new Application()

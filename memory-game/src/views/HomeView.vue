@@ -1,5 +1,7 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import GameUI from '@/components/GameUI.vue'
+</script>
 
 <template>
-  <main class="test"></main>
+  <GameUI />
 </template>

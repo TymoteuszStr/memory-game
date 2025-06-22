@@ -27,3 +27,9 @@ export const RARITY_GRADIENTS: Record<Rarity, [string, string]> = {
   [Rarity.Classified]: ['#e56eff', '#d32ce6'],
   [Rarity.Covert]: ['#ff7b7b', '#eb4b4b'],
 }
+
+export enum Difficulty {
+  Easy = 'easy',
+  Medium = 'medium',
+  Hard = 'hard',
+}

@@ -1,43 +1,142 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useGameStore } from '@/stores/gameStore'
-import { storeToRefs } from 'pinia'
 
-const emit = defineEmits<{
-  (e: 'start', payload: { seed: string; difficulty: 'easy' | 'medium' | 'hard' }): void
-  (e: 'restart'): void
-}>()
+import { useRouter } from 'vue-router'
+import { Difficulty } from '@/game/types'
 
-const game = useGameStore()
-const { moves, elapsed, gameActive } = storeToRefs(game)
+const router = useRouter()
 
 const seed = ref(Date.now().toString(36))
-const difficulty = ref<'easy' | 'medium' | 'hard'>('medium')
+const difficulty = ref<Difficulty>(Difficulty.Medium)
 
-function emitStart() {
+function onStart() {
   if (!seed.value) seed.value = Date.now().toString(36)
-  emit('start', { seed: seed.value, difficulty: difficulty.value })
+  const seedWithourSpaces = seed.value.replace(/\s+/g, '')
+  router.push({ name: 'game', query: { seed: seedWithourSpaces, difficulty: difficulty.value } })
 }
 
-function formatTime(ms: number) {
-  const s = Math.floor(ms / 1000)
-  return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`
+function setDifficulty(newDifficulty: Difficulty) {
+  difficulty.value = newDifficulty
 }
 </script>
 <template>
-  <form v-if="!gameActive" class="flex gap-3" @submit.prevent="emitStart">
-    <input v-model="seed" placeholder="Seed" class="input" />
-    <select v-model="difficulty" class="select">
-      <option value="easy">Łatwy</option>
-      <option value="medium">Średni</option>
-      <option value="hard">Trudny</option>
-    </select>
-    <button class="btn">Start</button>
-  </form>
-
-  <div v-else class="flex items-center gap-6">
-    <span>Ruchy: {{ moves }}</span>
-    <span>Czas: {{ formatTime(elapsed) }}</span>
-    <button class="btn" @click="$emit('restart')">Restart</button>
+  <div class="wrapper">
+    <form class="form" @submit.prevent="onStart">
+      <h1>CS GO 2 Memory</h1>
+      <div class="form__group field">
+        <input
+          v-model="seed"
+          type="input"
+          class="form__field"
+          placeholder="Seed"
+          name="seed"
+          id="seed"
+        />
+        <label for="seed" class="form__label">Seed</label>
+      </div>
+      <div class="dificulty-container">
+        <button
+          class="dificulty-btn"
+          :class="{ easy: difficulty === Difficulty.Easy }"
+          @click.prevent="setDifficulty(Difficulty.Easy)"
+        >
+          easy
+        </button>
+        <button
+          class="dificulty-btn"
+          :class="{ medium: difficulty === Difficulty.Medium }"
+          @click.prevent="setDifficulty(Difficulty.Medium)"
+        >
+          medium
+        </button>
+        <button
+          class="dificulty-btn"
+          :class="{ hard: difficulty === Difficulty.Hard }"
+          @click.prevent="setDifficulty(Difficulty.Hard)"
+        >
+          hard
+        </button>
+      </div>
+      <button class="start-btn">Start</button>
+    </form>
   </div>
 </template>
+<style lang="scss" scoped>
+.wrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  max-width: fit-content;
+  height: 80vh;
+  max-height: 700px;
+  margin: auto auto;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 50px;
+    width: 100%;
+  }
+}
+.dificulty-container {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+
+  .dificulty-btn {
+    all: unset;
+    width: 100%;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 2px solid transparent;
+
+    &.easy {
+      border-color: #4caf50;
+    }
+    &.medium {
+      border-color: #ff9800;
+    }
+    &.hard {
+      border-color: #f44336;
+    }
+  }
+}
+
+.start-btn {
+  width: 100%;
+  height: 50px;
+  background: #2a7b9b;
+  background: linear-gradient(
+    90deg,
+    rgba(42, 123, 155, 1) 0%,
+    rgba(87, 199, 133, 1) 50%,
+    rgba(237, 221, 83, 1) 100%
+  );
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+</style>

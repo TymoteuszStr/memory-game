@@ -1,23 +1,27 @@
 <script setup lang="ts">
-import GameUI from '@/components/GameUI.vue'
 import GameCanvas from '@/components/GameCanvas.vue'
+import type { Difficulty } from '@/game/types'
 import { useGameStore } from '@/stores/gameStore'
 import { storeToRefs } from 'pinia'
+import { onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 
 const game = useGameStore()
+const route = useRoute()
+const { gameActive } = storeToRefs(game)
 
-function onStart(payload: { seed: string; difficulty: 'easy' | 'medium' | 'hard' }) {
-  console.log(payload.seed)
+function startGame(payload: { seed: string; difficulty: Difficulty }) {
   game.startGame(payload)
 }
 
-function restart() {
-  game.resetGame()
-}
-
-const { gameActive } = storeToRefs(game)
+onMounted(() => {
+  const seed = route.query.seed as string
+  const difficulty = route.query.difficulty as Difficulty
+  if (seed && difficulty) {
+    startGame({ seed, difficulty })
+  }
+})
 </script>
 <template>
-  <GameUI @start="onStart" />
-  <GameCanvas v-if="gameActive" :seed="game.seed" :difficulty="game.difficulty" />
+  <GameCanvas v-if="gameActive" :seed="game.seed" :difficulty="game.difficulty as Difficulty" />
 </template>

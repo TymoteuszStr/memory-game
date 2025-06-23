@@ -47,11 +47,10 @@ export const useGameStore = defineStore('game', () => {
 
   function startTimer() {
     stopTimer()
-    startStamp.value = Date.now() - elapsed.value 
+    startStamp.value = Date.now() - elapsed.value
     timer.value = window.setInterval(() => {
       elapsed.value = Date.now() - startStamp.value
     }, 1000)
-    console.log('[TIMER] start', startStamp) 
   }
 
   function stopTimer() {
@@ -89,5 +88,6 @@ export const useGameStore = defineStore('game', () => {
     saveGameManagerData,
     getGameManagerData,
     resumeGame,
+    stopTimer,
   }
 })

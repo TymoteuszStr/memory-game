@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import BackIcon from '@/components/BackIcon.vue'
 import GameCanvas from '@/components/GameCanvas.vue'
+import GameFinishedModal from '@/components/GameFinishedModal.vue'
 import GameStatistics from '@/components/GameStatistics.vue'
 import type { Difficulty } from '@/game/types'
 import { useGameStore } from '@/stores/gameStore'
 import { storeToRefs } from 'pinia'
+import { ref } from 'vue'
 import { computed } from 'vue'
 import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -13,7 +15,7 @@ const gameStore = useGameStore()
 const route = useRoute()
 const router = useRouter()
 const { gameActive } = storeToRefs(gameStore)
-
+const isModalOpen = ref(false)
 function startGame() {
   gameStore.startGame()
 }
@@ -23,6 +25,10 @@ const difficulty = computed(() => route.query.difficulty as Difficulty)
 function goBack() {
   gameStore.resetGame()
   router.push('/')
+}
+function finishGame() {
+  gameStore.stopTimer()
+  isModalOpen.value = true
 }
 onMounted(() => {
   if (!gameActive.value && seed.value && difficulty.value) {
@@ -37,7 +43,13 @@ onMounted(() => {
       <h1>CS GO 2 Memory</h1>
       <GameStatistics />
     </div>
-    <GameCanvas v-if="gameActive" :seed="seed" :difficulty="difficulty" />
+    <GameCanvas v-if="gameActive" :seed="seed" :difficulty="difficulty" @finishGame="finishGame" />
+    <GameFinishedModal
+      :is-open="isModalOpen"
+      @close="isModalOpen = false"
+      :total-moves="gameStore.moves"
+      :total-time="gameStore.elapsed"
+    />
   </div>
 </template>
 

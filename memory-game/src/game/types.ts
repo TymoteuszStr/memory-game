@@ -58,5 +58,6 @@ export const PAIR_MATCHED = 'pair:matched'
 export const GAME_MOVES = 'game:moves'
 export const GAME_SAVE = 'game:save'
 export const CARD_CLICK = 'card:click'
+export const GAME_FINISHED = 'game:finish'
 export const backCardTexturePath = '/assets/backImage.png'
 export const HEADER_HEIGHT = 150

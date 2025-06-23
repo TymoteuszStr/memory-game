@@ -3,6 +3,7 @@ import { Board } from '@/game/Board'
 import {
   backCardTexturePath,
   CARD_CLICK,
+  GAME_FINISHED,
   GAME_MOVES,
   GAME_SAVE,
   HEADER_HEIGHT,
@@ -151,9 +152,15 @@ export class GameManager extends EventEmitter {
   }
 
   private checkVictory() {
-    //ADD VICORY CHECK
-  }
+    const allMatched = this.board.cards.every((c) => c.isMatched)
+    if (!allMatched) return
 
+    const elapsed = Date.now() - this.startTs
+
+    this.emit(GAME_SAVE)
+
+    this.emit(GAME_FINISHED, { moves: this.moves, elapsed })
+  }
   canCardBeFlipped(card: Card): boolean {
     return (
       !this.flippedCard.includes(card) &&

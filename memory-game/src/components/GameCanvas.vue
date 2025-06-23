@@ -10,10 +10,12 @@ import {
   GAME_MOVES,
   GAME_SAVE,
   HEADER_HEIGHT,
+  GAME_FINISHED,
   type GameSaveData,
 } from '@/game/types'
 
 const props = defineProps<{ difficulty: Difficulty; seed: string }>()
+const emit = defineEmits(['finishGame'])
 const gameStore = useGameStore()
 
 const host = ref<HTMLDivElement | null>(null)
@@ -65,6 +67,7 @@ function addEvents(gm: GameManager | null) {
   gm.on(GAME_MOVES, (payload) => (gameStore.moves = payload.moves))
   gm.on('game:finished', (payload) => gameStore.finishGame(payload))
   gm.on(GAME_SAVE, onSaveChanges)
+  gm.on(GAME_FINISHED, onGameFinish)
 }
 
 function resizeRenderer() {
@@ -78,6 +81,9 @@ function onSaveChanges() {
   const data = gameManager?.getSerializableState()
   if (!data) return
   gameStore.saveGameManagerData(data)
+}
+function onGameFinish() {
+  emit('finishGame')
 }
 
 onMounted(async () => {

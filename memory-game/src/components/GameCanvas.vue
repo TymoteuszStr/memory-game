@@ -37,9 +37,9 @@ function startGame() {
 async function loadGame(save: GameSaveData) {
   try {
     gameManager = await GameManager.createFromState(app, mockWeapons, save)
+    gameStore.resumeGame(save)
     addEvents(gameManager)
     loading.value = false
-    gameStore.resumeGame(save)
     return
   } catch (err) {
     console.warn('Nieprawidłowy save – startuję nową grę', err)

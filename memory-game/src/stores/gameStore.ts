@@ -12,6 +12,7 @@ export const useGameStore = defineStore('game', () => {
   const isFinished = useLocalStorage('isFinished', false)
 
   const timer: Ref<number | null> = ref(null)
+  const startStamp = ref(0)
 
   function startGame() {
     resetGame()
@@ -46,9 +47,11 @@ export const useGameStore = defineStore('game', () => {
 
   function startTimer() {
     stopTimer()
+    startStamp.value = Date.now() - elapsed.value 
     timer.value = window.setInterval(() => {
-      elapsed.value += 1000
+      elapsed.value = Date.now() - startStamp.value
     }, 1000)
+    console.log('[TIMER] start', startStamp) 
   }
 
   function stopTimer() {
@@ -57,12 +60,13 @@ export const useGameStore = defineStore('game', () => {
       timer.value = null
     }
   }
+
   function resumeGame(save: GameSaveData) {
     moves.value = save.moves
     elapsed.value = Date.now() - save.startTs
-
     startTimer()
   }
+
   function saveGameManagerData(data: GameSaveData) {
     gameSavedData.value = JSON.stringify(data)
   }

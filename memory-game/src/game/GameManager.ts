@@ -103,6 +103,7 @@ export class GameManager extends EventEmitter {
     this.startTs = Date.now()
 
     this.resizeRenderer(window.innerWidth, window.innerHeight - HEADER_HEIGHT)
+    this.emit(GAME_SAVE)
   }
 
   private makeRectTexture(w: number, h: number, color: number) {
@@ -138,14 +139,13 @@ export class GameManager extends EventEmitter {
       this.checkVictory()
       this.flippedCard = []
       this.lockFlipingCard = false
-
       this.emit(GAME_SAVE)
     } else {
-      setTimeout(() => {
-        c1.flip()
-        c2.flip()
+      setTimeout(async () => {
+        await Promise.all([c1.flip(), c2.flip()])
         this.flippedCard = []
         this.lockFlipingCard = false
+        this.emit(GAME_SAVE)
       }, 500)
     }
   }
@@ -207,7 +207,7 @@ export class GameManager extends EventEmitter {
     this.moves = state.moves
     this.startTs = state.startTs
 
-    this.emit(PAIR_MATCHED, { moves: this.moves })
+    this.emit(PAIR_MATCHED)
   }
   static async createFromState(
     app: Application,

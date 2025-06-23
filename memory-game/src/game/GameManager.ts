@@ -28,6 +28,7 @@ export class GameManager extends EventEmitter {
   private flippedCard: Card[] = []
   moves = 0
   startTs = 0
+  private lockFlipingCard = false
 
   constructor(app: Application, config: GameConfig, skipGenerate = false) {
     super()
@@ -114,12 +115,16 @@ export class GameManager extends EventEmitter {
     sound.play('flip')
 
     this.flippedCard.push(card)
+    this.lockFlipingCard = true
     await card.flip()
 
     if (this.flippedCard.length === 2) {
+      this.lockFlipingCard = true
       this.moves++
       this.checkPair()
       this.emit(GAME_MOVES, { moves: this.moves })
+    } else {
+      this.lockFlipingCard = false
     }
   }
 
@@ -132,12 +137,15 @@ export class GameManager extends EventEmitter {
       this.emit(PAIR_MATCHED)
       this.checkVictory()
       this.flippedCard = []
+      this.lockFlipingCard = false
+
       this.emit(GAME_SAVE)
     } else {
       setTimeout(() => {
         c1.flip()
         c2.flip()
         this.flippedCard = []
+        this.lockFlipingCard = false
       }, 500)
     }
   }
@@ -151,7 +159,8 @@ export class GameManager extends EventEmitter {
       !this.flippedCard.includes(card) &&
       this.flippedCard.length < 2 &&
       !card.isMatched &&
-      !card.isFlipped
+      !card.isFlipped &&
+      !this.lockFlipingCard
     )
   }
 

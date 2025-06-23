@@ -11,12 +11,12 @@ export class Card extends Container {
   private front: Container
   private back: Container
   private targetSide = 0
-  private flipping = false
   private swapDone = false
   private startTime = 0
-  private readonly duration = 200
+  private readonly duration = 150
   private readonly ticker = Ticker.shared
   public isFlipped = false
+  public flipping = false
   public isMatched = false
 
   // Parallax properties

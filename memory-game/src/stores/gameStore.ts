@@ -34,6 +34,7 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function resetGame() {
+    stopTimer()
     board.value = []
     moves.value = 0
     elapsed.value = 0

@@ -53,7 +53,12 @@ export const gridSizeMap = {
   [Difficulty.Medium]: 6,
   [Difficulty.Hard]: 8,
 }
-
+export interface GameRecord {
+  date: number
+  elapsed: number
+  moves: number
+  difficulty: Difficulty
+}
 export const PAIR_MATCHED = 'pair:matched'
 export const GAME_MOVES = 'game:moves'
 export const GAME_SAVE = 'game:save'

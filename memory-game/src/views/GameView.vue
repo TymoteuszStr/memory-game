@@ -23,11 +23,10 @@ const seed = computed(() => route.query.seed as string)
 const difficulty = computed(() => route.query.difficulty as Difficulty)
 
 function goBack() {
-  gameStore.resetGame()
   router.push('/')
 }
 function finishGame() {
-  gameStore.stopTimer()
+  gameStore.setNewRecord(difficulty.value)
   isModalOpen.value = true
 }
 onMounted(() => {

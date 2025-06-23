@@ -65,7 +65,6 @@ function destroyGame() {
 function addEvents(gm: GameManager | null) {
   if (!gm) return
   gm.on(GAME_MOVES, (payload) => (gameStore.moves = payload.moves))
-  gm.on('game:finished', (payload) => gameStore.finishGame(payload))
   gm.on(GAME_SAVE, onSaveChanges)
   gm.on(GAME_FINISHED, onGameFinish)
 }

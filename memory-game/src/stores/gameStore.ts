@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, type Ref } from 'vue'
-import type { CardInit, GameSaveData } from '@/game/types'
+import type { CardInit, Difficulty, GameRecord, GameSaveData } from '@/game/types'
 import { useLocalStorage } from '@vueuse/core'
 
 export const useGameStore = defineStore('game', () => {
@@ -10,7 +10,7 @@ export const useGameStore = defineStore('game', () => {
   const elapsed = useLocalStorage('elapsed', 0)
   const gameActive = useLocalStorage('gameActive', false)
   const isFinished = useLocalStorage('isFinished', false)
-
+  const gameRecords = useLocalStorage<GameRecord[]>('gameRecords', [])
   const timer: Ref<number | null> = ref(null)
   const startStamp = ref(0)
 
@@ -24,14 +24,13 @@ export const useGameStore = defineStore('game', () => {
     startTimer()
   }
 
-  function finishGame(payload?: { moves: number; elapsed: number }) {
-    isFinished.value = true
-    gameActive.value = false
-    if (payload) {
-      moves.value = payload.moves
-      elapsed.value = payload.elapsed
-    }
-    stopTimer()
+  function setNewRecord(difficulty: Difficulty) {
+    gameRecords.value.push({
+      date: new Date().getTime(),
+      elapsed: elapsed.value,
+      moves: moves.value,
+      difficulty,
+    })
   }
 
   function resetGame() {
@@ -83,11 +82,12 @@ export const useGameStore = defineStore('game', () => {
     gameSavedData,
     startGame,
     startTimer,
-    finishGame,
+    setNewRecord,
     resetGame,
     saveGameManagerData,
     getGameManagerData,
     resumeGame,
     stopTimer,
+    gameRecords,
   }
 })

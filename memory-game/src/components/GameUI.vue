@@ -4,12 +4,14 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Difficulty } from '@/game/types'
 import { useGameStore } from '@/stores/gameStore'
+import TableRecord from './TableRecord.vue'
+import { computed } from 'vue'
 
 const router = useRouter()
 const gameStore = useGameStore()
 const seed = ref(Date.now().toString(36))
 const difficulty = ref<Difficulty>(Difficulty.Medium)
-
+const records = computed(() => gameStore.gameRecords)
 function onStart() {
   gameStore.resetGame()
   if (!seed.value) seed.value = Date.now().toString(36)
@@ -61,6 +63,7 @@ function setDifficulty(newDifficulty: Difficulty) {
       </div>
       <button class="start-btn">Start</button>
     </form>
+    <TableRecord :records="records" />
   </div>
 </template>
 <style lang="scss" scoped>
@@ -78,6 +81,7 @@ function setDifficulty(newDifficulty: Difficulty) {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
 
   .form {
     display: flex;

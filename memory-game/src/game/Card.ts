@@ -25,7 +25,7 @@ export class Card extends Container {
   private maxRotation = 0.07 // ~4 degrees
   private targetScale = 1
   private currentScale = 1
-  private maxScale = 1.05
+  private maxScale = 1.01
 
   constructor(
     id: string,

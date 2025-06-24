@@ -81,6 +81,11 @@ export class GameManager extends EventEmitter {
           preload: true,
           loaded: () => resolve(),
         })
+        sound.add('win', {
+          url: '/assets/win.mp3',
+          preload: true,
+          loaded: () => resolve(),
+        })
       }),
     )
     await Promise.all(promises)
@@ -156,6 +161,8 @@ export class GameManager extends EventEmitter {
     if (!allMatched) return
 
     const elapsed = Date.now() - this.startTs
+
+    sound.play('win')
 
     this.emit(GAME_SAVE)
 

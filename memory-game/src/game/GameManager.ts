@@ -69,25 +69,10 @@ export class GameManager extends EventEmitter {
     const promises: Promise<unknown>[] = []
 
     promises.push(Assets.load('/assets/backImage.png'))
-    promises.push(
-      new Promise<void>((resolve) => {
-        sound.add('flip', {
-          url: '/assets/cardFlip.wav',
-          preload: true,
-          loaded: () => resolve(),
-        })
-        sound.add('success', {
-          url: '/assets/success.wav',
-          preload: true,
-          loaded: () => resolve(),
-        })
-        sound.add('win', {
-          url: '/assets/win.mp3',
-          preload: true,
-          loaded: () => resolve(),
-        })
-      }),
-    )
+    promises.push(this.loadSoundOnce('flip', '/assets/cardFlip.wav'))
+    promises.push(this.loadSoundOnce('success', '/assets/success.wav'))
+    promises.push(this.loadSoundOnce('win', '/assets/win.mp3'))
+
     await Promise.all(promises)
     weapons.forEach((weapon) => {
       promises.push(Assets.load(weapon.texturePath))
@@ -231,5 +216,12 @@ export class GameManager extends EventEmitter {
     const gm = new GameManager(app, { ...state.config, weapons }, true)
     await gm.restoreFromState(state, weapons)
     return gm
+  }
+
+  private loadSoundOnce(name: string, path: string): Promise<void> {
+    return new Promise<void>((resolve) => {
+      if (sound.exists(name)) return resolve()
+      sound.add(name, { url: path, preload: true, loaded: (err) => resolve() })
+    })
   }
 }

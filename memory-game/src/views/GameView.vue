@@ -27,6 +27,7 @@ function goBack() {
 }
 function finishGame() {
   gameStore.setNewRecord(difficulty.value)
+  gameStore.stopTimer()
   isModalOpen.value = true
 }
 onMounted(() => {
